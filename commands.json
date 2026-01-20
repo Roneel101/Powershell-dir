@@ -31,4 +31,5 @@
   { "id": "fwd-email", "title": "Forward Emails / Set Delegate", "tags": ["o365"], "command": "Set-Mailbox -Identity user@domain.com -ForwardingSMTPAddress anotheruser@domain.com -DeliverToMailboxAndForward $true; Add-MailboxPermission -Identity user@domain.com -User delegate@domain.com -AccessRights FullAccess" },
   { "id": "cal-auto", "title": "Set Calendar AutoAccept (Room)", "tags": ["o365"], "command": "Set-CalendarProcessing -Identity \"Room@domain.com\" -AutomateProcessing AutoAccept -AddOrganizerToSubject $false -AllowConflicts $false" },
   { "id": "mbx-hide", "title": "Hide Mailbox from GAL", "tags": ["o365"], "command": "Set-Mailbox -Identity user@domain.com -HiddenFromAddressListsEnabled $true" }
+  { "id": "fullaccshared", "title": "Shared Mailbox FullAccessMembers", "tags": ["o365"], "command": "Get-MailboxPermission -Identity "SharedMailboxName" | Where-Object { $_.AccessRights -eq "FullAccess" -and $_.IsInherited -eq $false } },
 ]
