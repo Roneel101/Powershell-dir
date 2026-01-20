@@ -65,6 +65,8 @@
     input { flex: 2; }
     select { flex: 1; }
 
+    #tagFilter { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; font-size: 0.9rem; }
+    #tagFilter label { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-dim); }
 
     ul { list-style: none; padding: 0; }
     li { 
@@ -73,7 +75,6 @@
       margin-bottom: 1.5rem; 
       border-radius: 0.75rem; 
       border: 1px solid var(--border);
-      transition: transform 0.1s;
     }
 
     .command-header { 
@@ -94,21 +95,21 @@
       font-size: 0.85rem; 
       font-weight: 600;
       color: white;
+      transition: background 0.2s;
     }
     .copy-btn { background: #475569; }
     .fav-btn { background: #475569; }
     .fav-btn.active { background: #f59e0b; color: #000; }
 
     pre { margin: 1rem 0 !important; border-radius: 0.5rem !important; font-size: 0.9rem !important; }
-    .tag-label { font-size: 0.8rem; color: var(--text-dim); background: #0f172a; padding: 0.2rem 0.5rem; border-radius: 0.3rem; }
+    .tag-label { font-size: 0.8rem; color: var(--text-dim); background: #0f172a; padding: 0.2rem 0.5rem; border-radius: 0.3rem; margin-right: 0.3rem; }
 
-    footer { text-align: center; margin-top: 4rem; padding-bottom: 2rem; }
-    .reset-link { color: var(--text-dim); font-size: 0.8rem; cursor: pointer; text-decoration: underline; }
+    footer { text-align: center; margin-top: 4rem; padding-bottom: 2rem; color: var(--text-dim); font-size: 0.8rem; }
 
     @media (max-width: 600px) {
       .search-row { flex-direction: column; }
       .command-header { flex-direction: column; }
-      .actions { width: 100%; }
+      .actions { width: 100%; margin-top: 1rem; }
       .actions button { flex: 1; }
     }
   </style>
@@ -118,7 +119,7 @@
 <div class="container">
   <header>
     <h1>PowerShell Command Reference</h1>
-    <p style="color: var(--text-dim)">Search, Filter, and Copy Admin Scripts</p>
+    <p style="color: var(--text-dim)">Live Data-Driven Admin Toolkit</p>
   </header>
 
   <div class="nav">
@@ -128,19 +129,25 @@
 
   <div class="controls">
     <div class="search-row">
-      <input type="text" id="search" placeholder="Search commands or code...">
+      <input type="text" id="search" placeholder="Search by title or cmdlet...">
       <select id="category">
         <option value="all">All Categories</option>
         <option value="windows">Windows</option>
-        <option value="o365">Office 365 / Exchange</option>
+        <option value="o365">Office 365</option>
         <option value="azure">Azure AD</option>
       </select>
     </div>
+    <div id="tagFilter">
+      <strong>Quick Tags:</strong>
+      </div>
+  </div>
 
-  <ul id="list"></ul>
+  <ul id="list">
+    <li style="text-align:center">Loading commands...</li>
+  </ul>
 
   <footer>
-    <span class="reset-link" onclick="resetDefaults()">Reset to Default Commands</span>
+    <p>Data loaded from commands.json • LocalStorage used for favorites</p>
   </footer>
 </div>
 
@@ -153,88 +160,80 @@
   const tagFilter = document.getElementById('tagFilter');
 
   let currentPage = 'all';
+  let commands = [];
   let favorites = JSON.parse(localStorage.getItem('ps_favorites') || '[]');
 
-  const defaultCommands = [
-    // --- Windows ---
-    { id:'hostname', title:'Check Computer Name', tags:['windows'], command:'Hostname' },
-    { id:'rename-computer', title:'Rename Computer', tags:['windows'], command:'Rename-Computer -ComputerName "computer" -NewName "newcomputername" -DomainCredential domain\\user -Force -Restart' },
-    { id:'map-drive', title:'Map Network Drive', tags:['windows'], command:'New-PSDrive -Name "K" -PSProvider FileSystem -Root "\\\\touchsmart\\share" -Persist' },
-
-    // --- Office 365 Connectivity ---
-    { id:'conn-exo-basic', title:'Connect to Exchange Online (Basic)', tags:['o365'], command:'$UserCredential = Get-Credential; $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid/ -Credential $UserCredential -Authentication Basic -AllowRedirection; Import-PSSession $Session -DisableNameChecking' },
-    { id:'conn-exo-mfa', title:'Connect to Exchange Online (Modern MFA)', tags:['o365'], command:'Connect-ExchangeOnline -UserPrincipalName admin@domain.com' },
-    { id:'disconnect-exo', title:'Disconnect Exchange Online', tags:['o365'], command:'Disconnect-ExchangeOnline -Confirm:$false' },
-    { id:'login-o365', title:'Login to Office 365 (MSOL)', tags:['o365'], command:'$credential = Get-Credential; Connect-MsolService -Credential $credential' },
-    { id:'check-msol', title:'Check Account Connected', tags:['o365'], command:'Get-MsolDomain' },
-    { id:'rem-session', title:'Disconnect PowerShell Session', tags:['o365'], command:'Remove-PSSession $Session' },
-
-    // --- User Management ---
-    { id:'new-user', title:'Create New User', tags:['o365'], command:'New-MsolUser -UserPrincipalName megan.crawford@nidrywall.com -DisplayName "Megan Crawford"' },
-    { id:'reset-pwd', title:'Reset User Password', tags:['o365'], command:'Set-MsolUserPassword -UserPrincipalName user@domain.com -NewPassword "NewPass123!" -ForceChangePassword $true' },
-    { id:'upd-user', title:'Update User Info', tags:['o365'], command:'Set-MsolUser -UserPrincipalName user@domain.com -DisplayName "New Name"' },
-    { id:'upd-loc', title:'Update Usage Location', tags:['o365'], command:'Set-MsolUser -UserPrincipalName user@domain.com -UsageLocation "US"' },
-    { id:'rem-user', title:'Remove User', tags:['o365'], command:'Remove-MsolUser -UserPrincipalName user@domain.com -Force' },
-    { id:'upn-rename', title:'Rename UPN', tags:['o365'], command:'Set-MsolUserPrincipalName -UserPrincipalName "old@domain.com" -NewUserPrincipalName "new@domain.com"' },
-    
-    // --- Licenses ---
-    { id:'get-skus', title:'Check Available Licenses', tags:['o365'], command:'Get-MsolAccountSku' },
-    { id:'user-lic', title:'Check License Assigned to User', tags:['o365'], command:'Get-MsolUser -UserPrincipalName <UPN>' },
-    { id:'unlic-list', title:'List All Unlicensed Accounts', tags:['o365'], command:'Get-MsolUser -All -UnlicensedUsersOnly' },
-    { id:'assign-lic', title:'Assign License to User', tags:['o365'], command:'Set-MsolUserLicense -UserPrincipalName "<Account>" -AddLicenses "<AccountSkuId>"' },
-
-    // --- Azure ---
-    { id:'block-sign', title:'Block Sign-in', tags:['azure'], command:'Set-AzureADUser -ObjectID <user> -AccountEnabled $false' },
-    { id:'unblock-sign', title:'Unblock Sign-in', tags:['azure'], command:'Set-AzureADUser -ObjectID <user> -AccountEnabled $true' },
-    { id:'az-user-info', title:'Get Azure User Information', tags:['azure'], command:'Get-AzureADUser' },
-    { id:'login-activity', title:'Check Last Login Activity', tags:['azure'], command:'Get-AzureADAuditSignInLogs -Filter "UserPrincipalName eq \'user@domain.com\'"' },
-
-    // --- Groups ---
-    { id:'new-group', title:'Create Security Group', tags:['o365'], command:'New-MsolGroup -DisplayName "GroupName" -Description "Description" -GroupType Security' },
-    { id:'add-member', title:'Add User to Group', tags:['o365'], command:'Add-MsolGroupMember -GroupObjectId <GroupObjectId> -GroupMemberObjectId <UserObjectId> -GroupMemberType User' },
-    { id:'rem-member', title:'Remove User from Group', tags:['o365'], command:'Remove-MsolGroupMember -GroupObjectId <GroupObjectId> -GroupMemberObjectId <UserObjectId>' },
-
-    // --- Mailbox / Calendar ---
-    { id:'list-shared', title:'List Shared / Room Mailboxes', tags:['o365'], command:'Get-Mailbox -RecipientTypeDetails UserMailbox,SharedMailbox -ResultSize Unlimited' },
-    { id:'conv-mailbox', title:'Convert Shared to User Mailbox', tags:['o365'], command:'Set-Mailbox MarketingDept1 -Type Regular' },
-    { id:'mbx-size', title:'Check Mailbox Size / Items', tags:['o365'], command:'Get-MailboxStatistics -Identity user@domain.com' },
-    { id:'fwd-email', title:'Forward Emails / Set Delegate', tags:['o365'], command:'Set-Mailbox -Identity user@domain.com -ForwardingSMTPAddress anotheruser@domain.com -DeliverToMailboxAndForward $true; Add-MailboxPermission -Identity user@domain.com -User delegate@domain.com -AccessRights FullAccess' },
-    { id:'cal-auto', title:'Set Calendar AutoAccept (Room)', tags:['o365'], command:'Set-CalendarProcessing -Identity "Room@domain.com" -AutomateProcessing AutoAccept -AddOrganizerToSubject $false -AllowConflicts $false' },
-    { id:'mbx-hide', title:'Hide Mailbox from GAL', tags:['o365'], command:'Set-Mailbox -Identity user@domain.com -HiddenFromAddressListsEnabled $true' }
-  ];
-
-  let commands = JSON.parse(localStorage.getItem('ps_commands')) || defaultCommands;
+  // Fetch the JSON data
+  async function initApp() {
+    try {
+      const response = await fetch('commands.json');
+      if (!response.ok) throw new Error('Network response was not ok');
+      commands = await response.json();
+      
+      renderTags();
+      render();
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      list.innerHTML = `<li style="color:#ef4444; text-align:center;">
+        <strong>Error:</strong> Could not load commands.json.<br>
+        Ensure the JSON file is in the same folder as index.html.
+      </li>`;
+    }
+  }
 
   function renderTags() {
     const tags = [...new Set(commands.flatMap(c => c.tags))];
+    tagFilter.innerHTML = '<strong>Quick Tags:</strong>';
+    tags.forEach(t => {
+      const label = document.createElement('label');
+      label.innerHTML = `<input type="checkbox" value="${t}"> ${t}`;
+      tagFilter.appendChild(label);
+    });
+    tagFilter.querySelectorAll('input').forEach(i => i.onchange = render);
   }
 
   function render() {
     list.innerHTML = '';
     const searchTerm = search.value.toLowerCase();
     const selectedCat = category.value;
+    const selectedTags = Array.from(tagFilter.querySelectorAll('input:checked')).map(i => i.value);
 
-    commands.forEach(cmd => {
-      // Filter Logic
-      if (currentPage === 'favorites' && !favorites.includes(cmd.id)) return;
-      if (selectedCat !== 'all' && !cmd.tags.includes(selectedCat)) return;
-      if (searchTerm && !cmd.title.toLowerCase().includes(searchTerm) && !cmd.command.toLowerCase().includes(searchTerm)) return;
+    const filtered = commands.filter(cmd => {
+      const matchesPage = currentPage === 'all' || favorites.includes(cmd.id);
+      const matchesCat = selectedCat === 'all' || cmd.tags.includes(selectedCat);
+      const matchesTags = selectedTags.length === 0 || cmd.tags.some(t => selectedTags.includes(t));
+      const matchesSearch = cmd.title.toLowerCase().includes(searchTerm) || 
+                            cmd.command.toLowerCase().includes(searchTerm);
+      
+      return matchesPage && matchesCat && matchesTags && matchesSearch;
+    });
 
+    if (filtered.length === 0) {
+      list.innerHTML = '<li style="text-align:center; color:var(--text-dim)">No commands found.</li>';
+      return;
+    }
+
+    filtered.forEach(cmd => {
       const isFav = favorites.includes(cmd.id);
       const li = document.createElement('li');
       li.innerHTML = `
         <div class="command-header">
           <div class="command-title">${cmd.title}</div>
           <div class="actions">
-            <button class="btn fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${cmd.id}')">${isFav ? '★' : '☆'}</button>
-            <button class="btn copy-btn" onclick="copyCode(this, \`${cmd.command.replace(/`/g, '\\`')}\`)">Copy</button>
+            <button class="btn fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${cmd.id}')">
+              ${isFav ? '★' : '☆'}
+            </button>
+            <button class="btn copy-btn" onclick="copyCode(this, \`${cmd.command.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">
+              Copy
+            </button>
           </div>
         </div>
         <pre><code class="language-powershell">${cmd.command}</code></pre>
-        <div>${cmd.tags.map(t => `<span class="tag-label">${t}</span>`).join(' ')}</div>
+        <div>${cmd.tags.map(t => `<span class="tag-label">${t}</span>`).join('')}</div>
       `;
       list.appendChild(li);
     });
+    
     Prism.highlightAll();
   }
 
@@ -259,20 +258,13 @@
     render();
   };
 
-  window.resetDefaults = () => {
-    if(confirm("This will reset your command list and favorites. Continue?")) {
-        localStorage.clear();
-        location.reload();
-    }
-  };
-
   allBtn.onclick = () => { currentPage = 'all'; allBtn.classList.add('active'); favBtn.classList.remove('active'); render(); };
   favBtn.onclick = () => { currentPage = 'favorites'; favBtn.classList.add('active'); allBtn.classList.remove('active'); render(); };
   search.oninput = render;
   category.onchange = render;
 
-  renderTags();
-  render();
+  // Initialize App
+  initApp();
 </script>
 
 </body>
