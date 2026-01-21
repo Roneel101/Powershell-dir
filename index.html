@@ -1,271 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PowerShell Admin Reference</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PowerShell Admin Reference</title>
 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-powershell.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-powershell.min.js"></script>
 
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --accent: #3b82f6;
-      --text: #f8fafc;
-      --text-dim: #94a3b8;
-      --border: #334155;
-    }
+<style>
+:root {
+  --bg:#0f172a; --card-bg:#1e293b; --accent:#3b82f6;
+  --text:#f8fafc; --text-dim:#94a3b8; --border:#334155;
+}
 
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background: var(--bg); 
-      color: var(--text); 
-      margin: 0; 
-      padding: 2rem 1rem; 
-      line-height: 1.5;
-    }
+body {
+  font-family:Segoe UI,Tahoma,sans-serif;
+  background:var(--bg); color:var(--text);
+  margin:0; padding:2rem 1rem;
+}
 
-    .container { max-width: 1000px; margin: 0 auto; }
+.container { max-width:1000px; margin:auto; }
 
-    header { text-align: center; margin-bottom: 2rem; }
-    h1 { color: var(--accent); margin-bottom: 0.5rem; }
-    
-    .nav { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2rem; }
-    .nav button { 
-      background: var(--card-bg); 
-      color: var(--text); 
-      border: 1px solid var(--border); 
-      padding: 0.6rem 1.2rem; 
-      border-radius: 0.5rem; 
-      cursor: pointer; 
-      transition: all 0.2s;
-    }
-    .nav button.active { background: var(--accent); border-color: var(--accent); }
+header { text-align:center; margin-bottom:1rem; }
+h1 { color:var(--accent); margin-bottom:.2rem; }
 
-    .controls { 
-      background: var(--card-bg); 
-      padding: 1.5rem; 
-      border-radius: 0.75rem; 
-      border: 1px solid var(--border);
-      margin-bottom: 2rem;
-    }
+#statusBar {
+  text-align:center; font-size:.85rem;
+  margin-bottom:1.5rem; color:var(--text-dim);
+}
 
-    .search-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
-    input, select { 
-      background: var(--bg); 
-      color: white; 
-      border: 1px solid var(--border); 
-      padding: 0.75rem; 
-      border-radius: 0.5rem; 
-      font-size: 1rem;
-    }
-    input { flex: 2; }
-    select { flex: 1; }
+.nav {
+  display:flex; justify-content:center; gap:.5rem;
+  margin-bottom:1rem;
+}
+.nav button {
+  background:var(--card-bg); color:var(--text);
+  border:1px solid var(--border);
+  padding:.6rem 1.2rem; border-radius:.5rem;
+  cursor:pointer;
+}
+.nav button.active { background:var(--accent); }
 
-    #tagFilter { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; font-size: 0.9rem; }
-    #tagFilter label { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-dim); }
+.controls {
+  background:var(--card-bg);
+  padding:1.2rem; border-radius:.75rem;
+  border:1px solid var(--border);
+  margin-bottom:2rem;
+  position:sticky; top:0; z-index:10;
+}
 
-    ul { list-style: none; padding: 0; }
-    li { 
-      background: var(--card-bg); 
-      padding: 1.5rem; 
-      margin-bottom: 1.5rem; 
-      border-radius: 0.75rem; 
-      border: 1px solid var(--border);
-    }
+.search-row { display:flex; gap:1rem; }
+input,select {
+  background:var(--bg); color:white;
+  border:1px solid var(--border);
+  padding:.75rem; border-radius:.5rem;
+  font-size:1rem;
+}
+input { flex:2; } select { flex:1; }
 
-    .command-header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: flex-start; 
-      margin-bottom: 1rem; 
-      gap: 1rem;
-    }
-    .command-title { font-weight: bold; font-size: 1.1rem; color: var(--accent); }
-    
-    .actions { display: flex; gap: 0.5rem; }
-    .btn { 
-      padding: 0.4rem 0.8rem; 
-      border-radius: 0.4rem; 
-      border: none; 
-      cursor: pointer; 
-      font-size: 0.85rem; 
-      font-weight: 600;
-      color: white;
-      transition: background 0.2s;
-    }
-    .copy-btn { background: #475569; }
-    .fav-btn { background: #475569; }
-    .fav-btn.active { background: #f59e0b; color: #000; }
+#tagFilter {
+  margin-top:1rem; display:flex;
+  flex-wrap:wrap; gap:1rem;
+  font-size:.85rem;
+}
+#tagFilter label { cursor:pointer; color:var(--text-dim); }
 
-    pre { margin: 1rem 0 !important; border-radius: 0.5rem !important; font-size: 0.9rem !important; }
-    .tag-label { font-size: 0.8rem; color: var(--text-dim); background: #0f172a; padding: 0.2rem 0.5rem; border-radius: 0.3rem; margin-right: 0.3rem; }
+ul { list-style:none; padding:0; }
 
-    footer { text-align: center; margin-top: 4rem; padding-bottom: 2rem; color: var(--text-dim); font-size: 0.8rem; }
+li {
+  background:var(--card-bg);
+  padding:1.5rem; margin-bottom:1.5rem;
+  border-radius:.75rem; border:1px solid var(--border);
+}
 
-    @media (max-width: 600px) {
-      .search-row { flex-direction: column; }
-      .command-header { flex-direction: column; }
-      .actions { width: 100%; margin-top: 1rem; }
-      .actions button { flex: 1; }
-    }
-  </style>
+li.danger {
+  border-color:#ef4444;
+  background:linear-gradient(180deg,#1e293b,#1f2937);
+}
+
+.command-header {
+  display:flex; justify-content:space-between;
+  gap:1rem; margin-bottom:.75rem;
+}
+
+.command-title {
+  font-size:1.1rem; font-weight:bold;
+  color:var(--accent);
+}
+.danger .command-title::after { content:" ⚠️"; }
+
+.actions { display:flex; gap:.5rem; }
+
+.btn {
+  padding:.4rem .8rem;
+  border:none; border-radius:.4rem;
+  font-size:.8rem; cursor:pointer;
+  font-weight:600; color:white;
+}
+.copy-btn { background:#475569; }
+.fav-btn { background:#475569; }
+.fav-btn.active { background:#f59e0b; color:black; }
+
+pre { border-radius:.5rem !important; font-size:.9rem; }
+
+.tag-label {
+  font-size:.75rem; background:#0f172a;
+  color:var(--text-dim);
+  padding:.2rem .5rem;
+  border-radius:.3rem;
+  margin-right:.3rem;
+}
+
+.notes {
+  margin-top:.75rem;
+  font-size:.85rem;
+  color:#fbbf24;
+}
+
+.var { color:#22d3ee; font-weight:600; }
+
+footer {
+  text-align:center; margin-top:3rem;
+  font-size:.8rem; color:var(--text-dim);
+}
+
+#toast {
+  position:fixed; bottom:2rem; right:2rem;
+  background:#059669; color:white;
+  padding:.75rem 1.25rem;
+  border-radius:.5rem;
+  opacity:0; transform:translateY(10px);
+  transition:.3s; pointer-events:none;
+}
+#toast.show { opacity:1; transform:translateY(0); }
+
+@media(max-width:600px){
+  .search-row,.command-header { flex-direction:column; }
+  .actions button { flex:1; }
+}
+</style>
 </head>
+
 <body>
-
 <div class="container">
-  <header>
-    <h1>PowerShell Command Reference</h1>
-    <p style="color: var(--text-dim)">Live Data-Driven Admin Toolkit</p>
-  </header>
 
-  <div class="nav">
-    <button id="allBtn" class="active">All Commands</button>
-    <button id="favBtn">⭐ Favorites</button>
-  </div>
+<header>
+  <h1>PowerShell Command Reference</h1>
+  <p style="color:var(--text-dim)">Live Admin Toolkit</p>
+</header>
 
-  <div class="controls">
-    <div class="search-row">
-      <input type="text" id="search" placeholder="Search by title or cmdlet...">
-      <select id="category">
-        <option value="all">All Categories</option>
-        <option value="windows">Windows</option>
-        <option value="o365">Office 365</option>
-        <option value="azure">Azure AD</option>
-      </select>
-    </div>
-    <div id="tagFilter">
-      <strong>Quick Tags:</strong>
-      </div>
-  </div>
-
-  <ul id="list">
-    <li style="text-align:center">Loading commands...</li>
-  </ul>
-
-  <footer>
-    <p>Data loaded from commands.json • LocalStorage used for favorites</p>
-  </footer>
+<div id="statusBar">
+  EXO: <span id="exo">❌</span> &nbsp;
+  Graph: <span id="graph">❌</span>
 </div>
 
+<div class="nav">
+  <button id="allBtn" class="active">All</button>
+  <button id="favBtn">⭐ Favorites</button>
+</div>
+
+<div class="controls">
+  <div class="search-row">
+    <input id="search" placeholder="Search title or command">
+    <select id="category">
+      <option value="all">All Categories</option>
+      <option value="windows">Windows</option>
+      <option value="o365">Office 365</option>
+      <option value="azure">Azure AD</option>
+    </select>
+  </div>
+  <div id="tagFilter"><strong>Quick Tags:</strong></div>
+</div>
+
+<ul id="list"><li>Loading commands…</li></ul>
+
+<footer>commands.json • favorites stored locally</footer>
+</div>
+
+<div id="toast"></div>
+
 <script>
-  const list = document.getElementById('list');
-  const search = document.getElementById('search');
-  const category = document.getElementById('category');
-  const allBtn = document.getElementById('allBtn');
-  const favBtn = document.getElementById('favBtn');
-  const tagFilter = document.getElementById('tagFilter');
+const list=document.getElementById('list');
+const search=document.getElementById('search');
+const category=document.getElementById('category');
+const tagFilter=document.getElementById('tagFilter');
+const allBtn=document.getElementById('allBtn');
+const favBtn=document.getElementById('favBtn');
 
-  let currentPage = 'all';
-  let commands = [];
-  let favorites = JSON.parse(localStorage.getItem('ps_favorites') || '[]');
+let commands=[],currentPage='all';
+let favorites=JSON.parse(localStorage.getItem('ps_favorites')||'[]');
 
-  // Fetch the JSON data
-  async function initApp() {
-    try {
-      const response = await fetch('commands.json');
-      if (!response.ok) throw new Error('Network response was not ok');
-      commands = await response.json();
-      
-      renderTags();
-      render();
-    } catch (err) {
-      console.error("Fetch Error:", err);
-      list.innerHTML = `<li style="color:#ef4444; text-align:center;">
-        <strong>Error:</strong> Could not load commands.json.<br>
-        Ensure the JSON file is in the same folder as index.html.
-      </li>`;
-    }
+const highlightVars=c=>c.replace(/<[^>]+>/g,m=>`<span class="var">${m}</span>`);
+
+async function init(){
+  const res=await fetch('commands.json');
+  commands=await res.json();
+  renderTags(); render();
+}
+
+function renderTags(){
+  const tags=[...new Set(commands.flatMap(c=>c.tags))];
+  tags.forEach(t=>{
+    const l=document.createElement('label');
+    l.innerHTML=`<input type="checkbox" value="${t}"> ${t}`;
+    tagFilter.appendChild(l);
+  });
+  tagFilter.querySelectorAll('input').forEach(i=>i.onchange=render);
+}
+
+function render(){
+  list.innerHTML='';
+  const term=search.value.toLowerCase();
+  const cat=category.value;
+  const selTags=[...tagFilter.querySelectorAll('input:checked')].map(i=>i.value);
+
+  const filtered=commands.filter(c=>{
+    return (currentPage==='all'||favorites.includes(c.id)) &&
+      (cat==='all'||c.tags.includes(cat)) &&
+      (selTags.length===0||c.tags.some(t=>selTags.includes(t))) &&
+      (c.title.toLowerCase().includes(term)||c.command.toLowerCase().includes(term));
+  });
+
+  if(!filtered.length){
+    list.innerHTML='<li style="text-align:center;color:var(--text-dim)">No results</li>';
+    return;
   }
 
-  function renderTags() {
-    const tags = [...new Set(commands.flatMap(c => c.tags))];
-    tagFilter.innerHTML = '<strong>Quick Tags:</strong>';
-    tags.forEach(t => {
-      const label = document.createElement('label');
-      label.innerHTML = `<input type="checkbox" value="${t}"> ${t}`;
-      tagFilter.appendChild(label);
-    });
-    tagFilter.querySelectorAll('input').forEach(i => i.onchange = render);
-  }
-
-  function render() {
-    list.innerHTML = '';
-    const searchTerm = search.value.toLowerCase();
-    const selectedCat = category.value;
-    const selectedTags = Array.from(tagFilter.querySelectorAll('input:checked')).map(i => i.value);
-
-    const filtered = commands.filter(cmd => {
-      const matchesPage = currentPage === 'all' || favorites.includes(cmd.id);
-      const matchesCat = selectedCat === 'all' || cmd.tags.includes(selectedCat);
-      const matchesTags = selectedTags.length === 0 || cmd.tags.some(t => selectedTags.includes(t));
-      const matchesSearch = cmd.title.toLowerCase().includes(searchTerm) || 
-                            cmd.command.toLowerCase().includes(searchTerm);
-      
-      return matchesPage && matchesCat && matchesTags && matchesSearch;
-    });
-
-    if (filtered.length === 0) {
-      list.innerHTML = '<li style="text-align:center; color:var(--text-dim)">No commands found.</li>';
-      return;
-    }
-
-    filtered.forEach(cmd => {
-      const isFav = favorites.includes(cmd.id);
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <div class="command-header">
-          <div class="command-title">${cmd.title}</div>
-          <div class="actions">
-            <button class="btn fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${cmd.id}')">
-              ${isFav ? '★' : '☆'}
-            </button>
-            <button class="btn copy-btn" onclick="copyCode(this, \`${cmd.command.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">
-              Copy
-            </button>
-          </div>
+  filtered.forEach(c=>{
+    const li=document.createElement('li');
+    if(c.danger) li.classList.add('danger');
+    li.innerHTML=`
+      <div class="command-header">
+        <div class="command-title">${c.title}</div>
+        <div class="actions">
+          <button class="btn fav-btn ${favorites.includes(c.id)?'active':''}"
+            onclick="toggleFav('${c.id}')">${favorites.includes(c.id)?'★':'☆'}</button>
+          <button class="btn copy-btn"
+            onclick="copyCmd(\`${c.command.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`)">
+            Copy
+          </button>
         </div>
-        <pre><code class="language-powershell">${cmd.command}</code></pre>
-        <div>${cmd.tags.map(t => `<span class="tag-label">${t}</span>`).join('')}</div>
-      `;
-      list.appendChild(li);
-    });
-    
-    Prism.highlightAll();
-  }
+      </div>
+      <pre><code class="language-powershell">${highlightVars(c.command)}</code></pre>
+      ${c.notes?`<div class="notes">📝 ${c.notes}</div>`:''}
+      <div>${c.tags.map(t=>`<span class="tag-label">${t}</span>`).join('')}</div>
+    `;
+    list.appendChild(li);
+  });
 
-  window.copyCode = (btn, text) => {
-    navigator.clipboard.writeText(text);
-    const original = btn.innerText;
-    btn.innerText = 'Copied!';
-    btn.style.background = '#059669';
-    setTimeout(() => { 
-      btn.innerText = original; 
-      btn.style.background = '';
-    }, 1500);
-  };
+  document.querySelectorAll('pre code').forEach(b=>{
+    if(!b.dataset.h){ Prism.highlightElement(b); b.dataset.h=1; }
+  });
+}
 
-  window.toggleFav = (id) => {
-    if (favorites.includes(id)) {
-      favorites = favorites.filter(f => f !== id);
-    } else {
-      favorites.push(id);
-    }
-    localStorage.setItem('ps_favorites', JSON.stringify(favorites));
-    render();
-  };
+function copyCmd(text){
+  navigator.clipboard.writeText(text);
+  const t=document.getElementById('toast');
+  t.textContent='Command copied';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1500);
+}
 
-  allBtn.onclick = () => { currentPage = 'all'; allBtn.classList.add('active'); favBtn.classList.remove('active'); render(); };
-  favBtn.onclick = () => { currentPage = 'favorites'; favBtn.classList.add('active'); allBtn.classList.remove('active'); render(); };
-  search.oninput = render;
-  category.onchange = render;
+function toggleFav(id){
+  favorites=favorites.includes(id)?favorites.filter(f=>f!==id):[...favorites,id];
+  localStorage.setItem('ps_favorites',JSON.stringify(favorites));
+  render();
+}
 
-  // Initialize App
-  initApp();
+allBtn.onclick=()=>{currentPage='all';allBtn.classList.add('active');favBtn.classList.remove('active');render();}
+favBtn.onclick=()=>{currentPage='favorites';favBtn.classList.add('active');allBtn.classList.remove('active');render();}
+search.oninput=render; category.onchange=render;
+
+init();
 </script>
-
 </body>
 </html>
