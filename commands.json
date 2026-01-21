@@ -32,4 +32,20 @@
   { "id": "cal-auto", "title": "Set Calendar AutoAccept (Room)", "tags": ["o365"], "command": "Set-CalendarProcessing -Identity \"Room@domain.com\" -AutomateProcessing AutoAccept -AddOrganizerToSubject $false -AllowConflicts $false" },
   { "id": "mbx-hide", "title": "Hide Mailbox from GAL", "tags": ["o365"], "command": "Set-Mailbox -Identity user@domain.com -HiddenFromAddressListsEnabled $true" },
   { "id": "fullaccshared", "title": "Shared Mailbox FullAccessMembers", "tags": ["o365"], "command": "Get-MailboxPermission -Identity \"SharedMailboxName\" | Where-Object { $_.AccessRights -eq 'FullAccess' -and $_.IsInherited -eq $false }" }
+  { "id": "mfa-status", "title": "Check MFA Status", "tags": ["o365","security"], "command": "Get-MsolUser -UserPrincipalName user@domain.com | Select DisplayName,UserPrincipalName,StrongAuthenticationRequirements" }
+  { "id": "force-signout", "title": "Force User Sign-Out", "tags": ["azure","security"], "command": "Revoke-AzureADUserAllRefreshToken -ObjectId <userObjectId>" }
+  { "id": "reset-mfa", "title": "Reset MFA Registration", "tags": ["o365","security"], "command": "Reset-MsolStrongAuthenticationMethodByUpn -UserPrincipalName user@domain.com" }
+  { "id": "shared-send-as", "title": "Shared Mailbox Send-As Members", "tags": ["o365"], "command": "Get-RecipientPermission -Identity \"SharedMailboxName\" | Where-Object { $_.Trustee -ne 'NT AUTHORITY\\\\SELF' }" }
+  { "id": "add-shared", "title": "Add User to Shared Mailbox", "tags": ["o365"], "command": "Add-MailboxPermission -Identity \"SharedMailboxName\" -User user@domain.com -AccessRights FullAccess -InheritanceType All" }
+  { "id": "remove-shared", "title": "Remove User from Shared Mailbox", "tags": ["o365"], "command": "Remove-MailboxPermission -Identity \"SharedMailboxName\" -User user@domain.com -AccessRights FullAccess -Confirm:$false" }
+  { "id": "enable-audit", "title": "Enable Mailbox Audit Logging", "tags": ["o365","security"], "command": "Set-Mailbox user@domain.com -AuditEnabled $true" }
+  { "id": "list-group-members", "title": "List Group Members", "tags": ["o365"], "command": "Get-MsolGroupMember -GroupObjectId <GroupObjectId>" }
+  { "id": "dl-members", "title": "Distribution Group Members", "tags": ["o365"], "command": "Get-DistributionGroupMember -Identity \"DL Name\"" }
+  { "id": "logged-user", "title": "Currently Logged-In User", "tags": ["windows"], "command": "query user" }
+  { "id": "uptime", "title": "System Uptime", "tags": ["windows"], "command": "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime" }
+  { "id": "installed-apps", "title": "List Installed Software", "tags": ["windows"], "command": "Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select DisplayName,DisplayVersion" }
+  { "id": "disk-space", "title": "Check Disk Space", "tags": ["windows"], "command": "Get-PSDrive -PSProvider FileSystem" }
+  { "id": "pwd-last-set", "title": "Password Last Set", "tags": ["o365"], "command": "Get-MsolUser -UserPrincipalName user@domain.com | Select DisplayName,LastPasswordChangeTimestamp" }
+  { "id": "disabled-users", "title": "List Disabled Users", "tags": ["azure"], "command": "Get-AzureADUser -All $true | Where-Object { $_.AccountEnabled -eq $false }" }
+
 ]
