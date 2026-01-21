@@ -47,5 +47,4 @@
   { "id": "disk-space", "title": "Check Disk Space", "tags": ["windows"], "command": "Get-PSDrive -PSProvider FileSystem" }
   { "id": "pwd-last-set", "title": "Password Last Set", "tags": ["o365"], "command": "Get-MsolUser -UserPrincipalName user@domain.com | Select DisplayName,LastPasswordChangeTimestamp" }
   { "id": "disabled-users", "title": "List Disabled Users", "tags": ["azure"], "command": "Get-AzureADUser -All $true | Where-Object { $_.AccountEnabled -eq $false }" }
-
 ]
